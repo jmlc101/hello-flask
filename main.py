@@ -23,28 +23,10 @@ def hello():
     template = jinja_env.get_template('hello_greeting.html')
     return template.render(name=first_name)
 
-time_form = """
-    <style>
-        .error {{ color: red; }}
-    </style>
-    <h1>Validation Time</h1>
-    <form method='POST'>
-        <label>Hours (24-hour format)
-            <input name='hours' type='text' value='{hours}' />
-        </label>
-        <p class='error'>{hours_error}</p>
-        <label>Minutes
-            <input name="minutes" type='text' values='{minutes}' />
-        </label>
-        <p class='error'>{minutes_error}</p>
-        <input type='submit' value='Validate' />
-    </form>
-    """
-
 @app.route('/validate-time')
 def display_time_form():
-    return time_form.format(hours='', hours_error='',
-         minutes='', minutes_error='')
+    template = jinja_env.get_template('time_form.html')
+    return template.render()
 
 def is_integer(num):#first validation: is string able to be converted to int?
     try:
@@ -87,7 +69,8 @@ def validate_time():
         time = str(hours) + ':' + str(minutes)
         return redirect('/valid-time?time={0}'.format(time))
     else:
-        return time_form.format(hours_error=hours_error,
+        template = jinja_env.get_template('time_form.html')
+        return template.render(hours_error=hours_error,
          minutes_error=minutes_error,
          hours=hours,
          minutes=minutes)
@@ -97,6 +80,18 @@ def valid_time():
     time = request.args.get('time')
     return '<h1>You submitted {0}. Thanks for submitting a valid time!</h1>'.format(time)
 
+tasks = []
+
+@app.route('/todos', methods=['POST', 'GET'])
+def todos():
+
+    if request.method == 'POST':
+        task = request.form['task']
+        tasks.append(task)
+
+
+    template = jinja_env.get_template('todos.html')
+    return template.render(title='TODOs', tasks=tasks)
 
 
 app.run()
