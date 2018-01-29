@@ -1,11 +1,7 @@
-from flask import Flask, request, redirect
-import cgi
-import os
-import jinja2
+from flask import Flask, request, redirect, render_template
 
-template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader
-(template_dir), autoescape=True)
+
+
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -14,37 +10,16 @@ app.config['DEBUG'] = True
 
 @app.route("/")
 def index():
-    template = jinja_env.get_template('hello_form.html')
-    return template.render()
+    return render_template('hello_form.html')
 
 @app.route('/hello', methods=['POST'])
 def hello():
     first_name = request.form['first_name']
-    template = jinja_env.get_template('hello_greeting.html')
-    return template.render(name=first_name)
-
-time_form = """
-    <style>
-        .error {{ color: red; }}
-    </style>
-    <h1>Validation Time</h1>
-    <form method='POST'>
-        <label>Hours (24-hour format)
-            <input name='hours' type='text' value='{hours}' />
-        </label>
-        <p class='error'>{hours_error}</p>
-        <label>Minutes
-            <input name="minutes" type='text' values='{minutes}' />
-        </label>
-        <p class='error'>{minutes_error}</p>
-        <input type='submit' value='Validate' />
-    </form>
-    """
+    return render_template('hello_greeting.html', name=first_name)
 
 @app.route('/validate-time')
 def display_time_form():
-    return time_form.format(hours='', hours_error='',
-         minutes='', minutes_error='')
+    return render_template('time_form.html')
 
 def is_integer(num):#first validation: is string able to be converted to int?
     try:
@@ -87,7 +62,7 @@ def validate_time():
         time = str(hours) + ':' + str(minutes)
         return redirect('/valid-time?time={0}'.format(time))
     else:
-        return time_form.format(hours_error=hours_error,
+        return render_template('time_form.html', hours_error=hours_error,
          minutes_error=minutes_error,
          hours=hours,
          minutes=minutes)
@@ -97,6 +72,16 @@ def valid_time():
     time = request.args.get('time')
     return '<h1>You submitted {0}. Thanks for submitting a valid time!</h1>'.format(time)
 
+tasks = []
+
+@app.route('/todos', methods=['POST', 'GET'])
+def todos():
+
+    if request.method == 'POST':
+        task = request.form['task']
+        tasks.append(task)
+
+    return render_template('todos.html', title='TODOs', tasks=tasks)
 
 
 app.run()
